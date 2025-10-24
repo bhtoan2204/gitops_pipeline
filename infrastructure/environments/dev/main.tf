@@ -17,9 +17,8 @@ terraform {
     # AWS region
     region = "ap-southeast-1"
 
-    # DynamoDB table for state locking
-    dynamodb_table = "terraform-state-locks-dev"
-    use_lockfile   = true
+    # Enable Terraform's native lockfile handling (replaces DynamoDB locking)
+    use_lockfile = true
 
     # Enable encryption
     encrypt = true
