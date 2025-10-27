@@ -2,26 +2,22 @@ MY_IP := 0.0.0.0/0
 ENVIRONMENT ?= dev
 
 backend-setup:
-	cd backend-setup
-	terraform init
-	terraform plan
+	cd backend-setup && terraform init && terraform plan
 
 backend-cost-estimate:
-	cd backend-setup
-	@echo "Estimating costs for Backend DynamoDB and S3 bucket..."
+	cd backend-setup && \
+	@echo "Estimating costs for Backend DynamoDB and S3 bucket..." && \
 	@if command -v infracost >/dev/null 2>&1; then \
 		infracost breakdown --path .; \
 	else \
-		echo "infracost not installed.; \
+		echo "infracost not installed."; \
 	fi	
 
 backend-apply:
-	cd backend-setup
-	terraform apply
+	cd backend-setup && terraform apply -auto-approve
 
 backend-destroy:
-	cd backend-setup
-	terraform destroy
+	cd backend-setup && terraform destroy -auto-approve
 
 .PHONY: backend-setup backend-destroy backend-cost-estimate backend-apply
 
