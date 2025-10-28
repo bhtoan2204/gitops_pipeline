@@ -98,6 +98,7 @@ module "eks" {
   node_min_size       = var.node_min_size
   node_disk_size      = var.node_disk_size
   capacity_type       = var.capacity_type
+  node_ssh_key_name   = module.keypair.key_name
   allowed_cidr_blocks = var.allowed_ssh_cidrs
   tags                = local.common_tags
 }
@@ -116,6 +117,7 @@ module "ec2_control_plane" {
   allowed_ssh_cidrs         = var.allowed_ssh_cidrs
   volume_size               = var.control_plane_volume_size
   eks_cluster_name          = module.eks.cluster_name
+  eks_cluster_version       = var.kubernetes_version
   aws_region                = var.aws_region
   tags                      = local.common_tags
 }

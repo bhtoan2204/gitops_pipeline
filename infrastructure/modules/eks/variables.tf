@@ -16,7 +16,7 @@ variable "private_subnet_ids" {
 variable "kubernetes_version" {
   description = "Kubernetes version for EKS cluster"
   type        = string
-  default     = "1.30"
+  default     = "1.32"
 }
 
 variable "node_instance_types" {
@@ -53,6 +53,12 @@ variable "capacity_type" {
   description = "Capacity type for EKS nodes (ON_DEMAND or SPOT)"
   type        = string
   default     = "SPOT"
+}
+
+variable "node_ssh_key_name" {
+  description = "Existing EC2 key pair name for accessing worker nodes"
+  type        = string
+  default     = null
 }
 
 variable "allowed_cidr_blocks" {

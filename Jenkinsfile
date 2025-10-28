@@ -12,6 +12,21 @@ pipeline {
             }
         }
 
+        stage("Run unit tests") {
+            steps {
+                script {
+                    echo "Running unit tests..."
+                    sh '''
+                        python3 -m venv venv
+                        . venv/bin/activate
+                        pip install --upgrade pip
+                        pip install -r requirements.txt
+                        pytest test_app.py -v --cov=app --cov-report=term-missing
+                    '''
+                }
+            }
+        }
+
         stage("Build") {
             steps {
                 script {
@@ -20,10 +35,10 @@ pipeline {
             }
         }
 
-        stage("Push to Docker Hub") {
+        stage("Push to Container Registry") {
             steps {
                 script {
-                    echo "Pushing the application to Docker Hub..."
+                    echo "Pushing the application to Container Registry..."
                 }
             }
         }

@@ -125,45 +125,45 @@ resource "aws_security_group" "eks_nodes" {
   })
 }
 
-# Launch Template for EKS Nodes
-resource "aws_launch_template" "eks_nodes" {
-  name_prefix   = "${var.environment}-eks-nodes-"
-  image_id      = data.aws_ssm_parameter.eks_node_ami.value
-  instance_type = var.node_instance_types[0]
+# # Launch Template for EKS Nodes
+# resource "aws_launch_template" "eks_nodes" {
+#   name_prefix   = "${var.environment}-eks-nodes-"
+#   image_id      = data.aws_ssm_parameter.eks_node_ami.value
+#   instance_type = var.node_instance_types[0]
 
-  vpc_security_group_ids = [aws_security_group.eks_nodes.id]
+#   vpc_security_group_ids = [aws_security_group.eks_nodes.id]
 
-  block_device_mappings {
-    device_name = "/dev/xvda"
-    ebs {
-      volume_size = var.node_disk_size
-      volume_type = "gp3"
-      encrypted   = true
-    }
-  }
+#   block_device_mappings {
+#     device_name = "/dev/xvda"
+#     ebs {
+#       volume_size = var.node_disk_size
+#       volume_type = "gp3"
+#       encrypted   = true
+#     }
+#   }
 
-  user_data = base64encode(templatefile("${path.module}/user_data.sh", {
-    cluster_name     = aws_eks_cluster.main.name
-    cluster_endpoint = aws_eks_cluster.main.endpoint
-    cluster_ca       = aws_eks_cluster.main.certificate_authority[0].data
-  }))
+#   user_data = base64encode(templatefile("${path.module}/user_data.sh", {
+#     cluster_name     = aws_eks_cluster.main.name
+#     cluster_endpoint = aws_eks_cluster.main.endpoint
+#     cluster_ca       = aws_eks_cluster.main.certificate_authority[0].data
+#   }))
 
-  tag_specifications {
-    resource_type = "instance"
-    tags = merge(var.tags, {
-      Name = "${var.environment}-eks-node"
-    })
-  }
+#   tag_specifications {
+#     resource_type = "instance"
+#     tags = merge(var.tags, {
+#       Name = "${var.environment}-eks-node"
+#     })
+#   }
 
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
 
-# Get the latest EKS optimized AMI
-data "aws_ssm_parameter" "eks_node_ami" {
-  name = "/aws/service/eks/optimized-ami/${var.kubernetes_version}/amazon-linux-2023/x86_64/standard/recommended/image_id"
-}
+# # Get the latest EKS optimized AMI
+# data "aws_ssm_parameter" "eks_node_ami" {
+#   name = "/aws/service/eks/optimized-ami/${var.kubernetes_version}/amazon-linux-2023/x86_64/standard/recommended/image_id"
+# }
 
 # EKS Cluster
 resource "aws_eks_cluster" "main" {
@@ -190,6 +190,30 @@ resource "aws_eks_cluster" "main" {
   })
 }
 
+# EKS Add-ons (managed by EKS)
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name                = aws_eks_cluster.main.name
+  addon_name                  = "vpc-cni"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+}
+
+resource "aws_eks_addon" "coredns" {
+  cluster_name                = aws_eks_cluster.main.name
+  addon_name                  = "coredns"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+
+  depends_on = [aws_eks_node_group.main]
+}
+
+resource "aws_eks_addon" "kube_proxy" {
+  cluster_name                = aws_eks_cluster.main.name
+  addon_name                  = "kube-proxy"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+}
+
 # CloudWatch Log Group for EKS Cluster
 resource "aws_cloudwatch_log_group" "eks_cluster" {
   name              = "/aws/eks/${var.environment}-eks-cluster/cluster"
@@ -200,15 +224,16 @@ resource "aws_cloudwatch_log_group" "eks_cluster" {
   })
 }
 
-# EKS Node Group
+# EKS Node Group - Using managed EKS approach (no custom launch template)
 resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.environment}-eks-nodes"
   node_role_arn   = aws_iam_role.eks_node_group_role.arn
   subnet_ids      = var.private_subnet_ids
 
-  capacity_type = var.capacity_type
-  ami_type      = "CUSTOM"
+  instance_types = var.node_instance_types
+  capacity_type  = var.capacity_type
+  ami_type       = "AL2023_x86_64_STANDARD" # Amazon Linux 2023
 
   scaling_config {
     desired_size = var.node_desired_size
@@ -220,10 +245,18 @@ resource "aws_eks_node_group" "main" {
     max_unavailable_percentage = 25
   }
 
-  # Add launch template for better control
-  launch_template {
-    name    = aws_launch_template.eks_nodes.name
-    version = aws_launch_template.eks_nodes.latest_version
+  disk_size = var.node_disk_size
+
+  dynamic "remote_access" {
+    for_each = var.node_ssh_key_name != null && trimspace(var.node_ssh_key_name) != "" ? [var.node_ssh_key_name] : []
+    content {
+      ec2_ssh_key               = remote_access.value
+      source_security_group_ids = [aws_security_group.eks_cluster.id]
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [scaling_config[0].desired_size]
   }
 
   # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
@@ -232,6 +265,7 @@ resource "aws_eks_node_group" "main" {
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_cni_policy,
     aws_iam_role_policy_attachment.eks_container_registry_policy,
+    aws_eks_cluster.main,
   ]
 
   tags = merge(var.tags, {

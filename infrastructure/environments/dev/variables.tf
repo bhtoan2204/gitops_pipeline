@@ -45,14 +45,14 @@ variable "availability_zones" {
 variable "enable_nat_gateway" {
   description = "Enable NAT Gateway for private subnets"
   type        = bool
-  default     = false
+  default     = true
 }
 
 # EKS Configuration
 variable "kubernetes_version" {
   description = "Kubernetes version for EKS cluster"
   type        = string
-  default     = "1.30"
+  default     = "1.32"
 }
 
 variable "node_instance_types" {
@@ -70,7 +70,7 @@ variable "node_desired_size" {
 variable "node_max_size" {
   description = "Maximum number of nodes in the node group"
   type        = number
-  default     = 2
+  default     = 4
 }
 
 variable "node_min_size" {

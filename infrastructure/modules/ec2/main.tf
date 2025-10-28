@@ -85,8 +85,9 @@ resource "aws_security_group" "eks_control_plane" {
 # User data script for EKS control plane setup
 locals {
   user_data = base64encode(templatefile("${path.module}/user_data.sh", {
-    eks_cluster_name = var.eks_cluster_name
-    aws_region       = var.aws_region
+    eks_cluster_name   = var.eks_cluster_name
+    aws_region         = var.aws_region
+    kubernetes_version = var.eks_cluster_version
   }))
 }
 
