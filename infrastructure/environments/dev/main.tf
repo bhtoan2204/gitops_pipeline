@@ -90,6 +90,7 @@ module "eks" {
 
   environment         = "dev"
   vpc_id              = module.vpc.vpc_id
+  vpc_cidr            = var.vpc_cidr
   private_subnet_ids  = module.vpc.private_subnet_ids
   kubernetes_version  = var.kubernetes_version
   node_instance_types = var.node_instance_types
@@ -101,6 +102,8 @@ module "eks" {
   node_ssh_key_name   = module.keypair.key_name
   allowed_cidr_blocks = var.allowed_ssh_cidrs
   tags                = local.common_tags
+
+  control_plane_admin_principal_arn = module.iam.eks_control_plane_role_arn
 }
 
 # EC2 Control Plane Module

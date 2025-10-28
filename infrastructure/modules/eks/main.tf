@@ -89,6 +89,15 @@ resource "aws_security_group" "eks_cluster" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Allow VPC CIDR to reach EKS API (443) when using private endpoint
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+    description = "Allow VPC to EKS API"
+  }
+
   tags = merge(var.tags, {
     Name = "${var.environment}-eks-cluster-sg"
   })
@@ -177,6 +186,11 @@ resource "aws_eks_cluster" "main" {
     endpoint_public_access  = true
     public_access_cidrs     = var.allowed_cidr_blocks
     security_group_ids      = [aws_security_group.eks_cluster.id]
+  }
+
+  # Required to use EKS Access Entries/Policies
+  access_config {
+    authentication_mode = "API_AND_CONFIG_MAP"
   }
 
   # Enable EKS Add-ons
@@ -271,4 +285,22 @@ resource "aws_eks_node_group" "main" {
   tags = merge(var.tags, {
     Name = "${var.environment}-eks-nodes"
   })
+}
+
+# Grant cluster admin access to control-plane IAM role via EKS Access Entries
+resource "aws_eks_access_entry" "control_plane_admin" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = var.control_plane_admin_principal_arn
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "control_plane_admin_policy" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = var.control_plane_admin_principal_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [aws_eks_access_entry.control_plane_admin]
 }

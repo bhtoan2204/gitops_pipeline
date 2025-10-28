@@ -46,74 +46,22 @@ sudo mv /tmp/eksctl /usr/local/bin
 # Install helm
 retry bash -c 'curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash'
 
-# Create a non-root user for EKS management
-sudo useradd -m -s /bin/bash eks-admin
-sudo usermod -aG sudo eks-admin
+# Ensure kube directory for root
+sudo mkdir -p /root/.kube
 
-# Create .kube directory for eks-admin user
-sudo mkdir -p /home/eks-admin/.kube
-sudo chown eks-admin:eks-admin /home/eks-admin/.kube
-
-# Create a script to update kubeconfig
-sudo tee /home/eks-admin/update-kubeconfig.sh > /dev/null << 'SCRIPTEOF'
+# Create a script to update kubeconfig (root)
+sudo tee /usr/local/bin/update-kubeconfig.sh > /dev/null << 'SCRIPTEOF'
 #!/bin/bash
-sudo aws eks update-kubeconfig --region ${aws_region} --name ${eks_cluster_name}
+set -euo pipefail
+aws eks update-kubeconfig --region ${aws_region} --name ${eks_cluster_name}
 SCRIPTEOF
 
-sudo chmod +x /home/eks-admin/update-kubeconfig.sh
-sudo chown eks-admin:eks-admin /home/eks-admin/update-kubeconfig.sh
+sudo chmod +x /usr/local/bin/update-kubeconfig.sh
 
-# Create a helpful README
-# cat > /home/eks-admin/README.md << 'EOF'
-# # EKS Control Plane Management
-
-# This EC2 instance is configured to manage the EKS cluster.
-
-# ## Quick Start
-
-# 1. Update kubeconfig:
-#    ```bash
-#    ./update-kubeconfig.sh
-#    ```
-
-# 2. Verify cluster access:
-#    ```bash
-#    kubectl get nodes
-#    kubectl get pods --all-namespaces
-#    ```
-
-# 3. Useful commands:
-#    ```bash
-#    # Get cluster info
-#    kubectl cluster-info
-   
-#    # List all resources
-#    kubectl get all --all-namespaces
-   
-#    # Access cluster via proxy
-#    kubectl proxy --port=8000
-#    ```
-
-# ## Installed Tools
-
-# - kubectl: Kubernetes command-line tool
-# - eksctl: EKS command-line tool
-# - helm: Kubernetes package manager
-# - aws-cli: AWS command-line interface
-
-# ## Notes
-
-# - The cluster is configured with minimal resources for development
-# - Node group uses t3.medium instances
-# - Only 1-2 nodes are running by default
-# EOF
-
-# chown eks-admin:eks-admin /home/eks-admin/README.md
-
-# Set up bash completion for kubectl
-echo 'source <(kubectl completion bash)' | sudo tee -a /home/eks-admin/.bashrc > /dev/null
-echo 'alias k=kubectl' | sudo tee -a /home/eks-admin/.bashrc > /dev/null
-echo 'complete -F __start_kubectl k' | sudo tee -a /home/eks-admin/.bashrc > /dev/null
+# Set up bash completion for kubectl (root)
+echo 'source <(kubectl completion bash)' | sudo tee -a /root/.bashrc > /dev/null
+echo 'alias k=kubectl' | sudo tee -a /root/.bashrc > /dev/null
+echo 'complete -F __start_kubectl k' | sudo tee -a /root/.bashrc > /dev/null
 
 # Ensure /usr/local/bin is in PATH for all users
 echo 'export PATH=/usr/local/bin:$PATH' | sudo tee /etc/profile.d/10-localpath.sh > /dev/null
@@ -128,8 +76,8 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-User=eks-admin
-ExecStart=/home/eks-admin/update-kubeconfig.sh
+User=root
+ExecStart=/usr/local/bin/update-kubeconfig.sh
 RemainAfterExit=yes
 
 [Install]
@@ -141,6 +89,3 @@ sudo systemctl enable eks-kubeconfig.service
 
 # Log completion
 echo "EKS Control Plane setup completed at $(date)" | sudo tee -a /var/log/eks-setup.log > /dev/null
-
-# Update kubeconfig
-# sudo aws eks update-kubeconfig --region ap-southeast-1 --name dev-eks-cluster

@@ -8,6 +8,11 @@ variable "vpc_id" {
   type        = string
 }
 
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC (used to allow private EKS API access)"
+  type        = string
+}
+
 variable "private_subnet_ids" {
   description = "List of private subnet IDs for EKS cluster"
   type        = list(string)
@@ -78,4 +83,9 @@ variable "tags" {
   description = "Common tags to apply to all resources"
   type        = map(string)
   default     = {}
+}
+
+variable "control_plane_admin_principal_arn" {
+  description = "IAM principal ARN to grant EKS admin access"
+  type        = string
 }
