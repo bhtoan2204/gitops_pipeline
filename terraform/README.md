@@ -47,7 +47,7 @@ This infrastructure creates a minimal EKS cluster with an EC2 control plane for 
 
 6. **Connect to control plane**:
    ```bash
-   ssh -i ./ssh/id_rsa ubuntu@<public-ip>
+   ssh -i ./ssh/id_ed25519 ubuntu@<public-ip>
    ```
 
 7. **Update kubeconfig** (on the control plane):
@@ -141,7 +141,7 @@ make destroy
 
 ### Common Issues:
 
-1. **SSH Key Not Found**: Ensure `./ssh/id_rsa` and `./ssh/id_rsa.pub` exist
+1. **SSH Key Not Found**: Ensure `./ssh/id_ed25519` and `./ssh/id_ed25519.pub` exist
 2. **Permission Denied**: Check AWS credentials and IAM permissions
 3. **Cluster Not Accessible**: Verify security groups and VPC configuration
 4. **High Costs**: Review instance types and enable cost optimization features

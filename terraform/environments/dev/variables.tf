@@ -123,3 +123,56 @@ variable "allowed_ssh_cidrs" {
     error_message = "Provide at least one valid CIDR block for SSH and EKS API access."
   }
 }
+
+# Domain registration
+variable "domain_name" {
+  description = "Domain name to register"
+  type        = string
+  default     = "toanbh.com"
+}
+
+variable "domain_contact" {
+  description = "Contact info for domain registration (used for admin/registrant/tech)"
+  type = object({
+    first_name      = string
+    last_name       = string
+    contact_type    = string
+    organization    = optional(string)
+    address_line_1  = string
+    address_line_2  = optional(string)
+    city            = string
+    state           = string
+    country_code    = string
+    zip_code        = string
+    phone_number    = string
+    email           = string
+    fax             = optional(string)
+  })
+  default = {
+    first_name     = "Toan"
+    last_name      = "Banh"
+    contact_type   = "PERSON"
+    organization   = null
+    address_line_1 = "Tan Phu"
+    address_line_2 = null
+    city           = "HCM"
+    state          = "tân phú hồ chí minh"
+    country_code   = "VN"
+    zip_code       = "72009"
+    phone_number   = "" # lay tu env
+    email          = "" # lay tu env
+    fax            = null
+  }
+}
+
+variable "admin_email" {
+  description = "Override admin contact email via env (TF_VAR_admin_email)"
+  type        = string
+  default     = null
+}
+
+variable "admin_phone" {
+  description = "Override admin contact phone via env (TF_VAR_admin_phone)"
+  type        = string
+  default     = null
+}

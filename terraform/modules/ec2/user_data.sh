@@ -89,3 +89,6 @@ sudo systemctl enable eks-kubeconfig.service
 
 # Log completion
 echo "EKS Control Plane setup completed at $(date)" | sudo tee -a /var/log/eks-setup.log > /dev/null
+
+# Start the service
+sudo systemctl start eks-kubeconfig.service

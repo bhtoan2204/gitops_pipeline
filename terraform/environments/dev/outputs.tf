@@ -74,7 +74,7 @@ output "control_plane_public_dns" {
 # SSH Connection Commands
 output "ssh_connection_command" {
   description = "SSH command to connect to the EKS control plane EC2 instance as ubuntu user"
-  value       = "ssh -i ssh/id_rsa ubuntu@${module.ec2_control_plane.instance_public_ip}"
+  value       = "ssh -i ssh/id_ed25519 ubuntu@${module.ec2_control_plane.instance_public_ip}"
 }
 
 # Key Pair Outputs
@@ -117,10 +117,10 @@ output "ec2_instance_public_dns" {
 
 output "ssh_command" {
   description = "SSH command to connect to EC2 instance"
-  value       = "ssh -i ../../ssh/id_rsa ubuntu@${module.ec2_control_plane.instance_public_ip}"
+  value       = "ssh -i ../../ssh/id_ed25519 ubuntu@${module.ec2_control_plane.instance_public_ip}"
 }
 
 output "ssh_command_eks_admin" {
   description = "SSH command to connect as eks-admin user"
-  value       = "ssh -i ../../ssh/id_rsa eks-admin@${module.ec2_control_plane.instance_public_ip}"
+  value       = "ssh -i ../../ssh/id_ed25519 eks-admin@${module.ec2_control_plane.instance_public_ip}"
 }

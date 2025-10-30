@@ -37,6 +37,12 @@ locals {
     ManagedBy   = "Terraform"
     Owner       = var.owner
   }
+
+  # Allow overriding admin email/phone from env-provided vars
+  contact_admin = merge(var.domain_contact, {
+    email        = var.admin_email != null && var.admin_email != "" ? var.admin_email : var.domain_contact.email
+    phone_number = var.admin_phone != null && var.admin_phone != "" ? var.admin_phone : var.domain_contact.phone_number
+  })
 }
 
 # Provider configuration
@@ -51,6 +57,12 @@ provider "aws" {
       Owner       = var.owner
     }
   }
+}
+
+# Additional provider for Route53 Domains API (must be in us-east-1)
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
 }
 
 # VPC Module
@@ -80,7 +92,7 @@ module "keypair" {
   source = "../../modules/keypair"
 
   environment = "dev"
-  public_key  = file("${path.module}/../../ssh/id_rsa.pub")
+  public_key  = file("${path.module}/../../ssh/id_ed25519.pub")
   tags        = local.common_tags
 }
 
@@ -123,4 +135,24 @@ module "ec2_control_plane" {
   eks_cluster_version       = var.kubernetes_version
   aws_region                = var.aws_region
   tags                      = local.common_tags
+}
+
+module "route53" {
+  source = "../../modules/route53"
+
+  domain_name     = var.domain_name
+  auto_renew      = true
+  privacy_protect = true
+  register_domain = false
+
+  contact_admin      = local.contact_admin
+  contact_registrant = var.domain_contact
+  contact_tech       = var.domain_contact
+
+  tags = local.common_tags
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
 }

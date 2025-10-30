@@ -30,6 +30,10 @@ plan: ## Plan Terraform for specified environment
 	@echo "Planning $(ENVIRONMENT) environment..."
 	cd environments/$(ENVIRONMENT) && terraform plan -var="allowed_ssh_cidrs=[\"$(MY_IP)\"]" -out tfplan.binary
 
+refresh:
+	@echo "Refreshing $(ENVIRONMENT) environment..."
+	cd environments/$(ENVIRONMENT) && terraform refresh
+
 apply: ## Apply Terraform for specified environment
 	@echo "Applying $(ENVIRONMENT) environment..."
 	cd environments/$(ENVIRONMENT) && terraform apply tfplan.binary
@@ -59,7 +63,7 @@ eks-connect: ## Show SSH connection command for EKS control plane
 
 eks-kubeconfig: ## Update kubeconfig for EKS cluster (requires SSH access)
 	@echo "To update kubeconfig, SSH to the control plane and run:"
-	@echo "ssh -i ./ssh/id_rsa ubuntu@\$$(cd environments/$(ENVIRONMENT) && terraform output -raw control_plane_public_ip)"
+	@echo "ssh -i ./ssh/id_ed25519 ubuntu@\$$(cd environments/$(ENVIRONMENT) && terraform output -raw control_plane_public_ip)"
 	@echo "Then run: ./update-kubeconfig.sh"
 
 cost-estimate: ## Estimate costs for entire infrastructure
@@ -74,4 +78,4 @@ re-apply: ## Re-apply Terraform for specified environment
 	@echo "Re-applying $(ENVIRONMENT) environment..."
 	cd environments/$(ENVIRONMENT) && terraform apply -auto-approve -var="allowed_ssh_cidrs=[\"$(MY_IP)\"]"
 
-.PHONY: init plan apply destroy show output eks-status eks-connect eks-kubeconfig cost-estimate re-apply
+.PHONY: init plan apply destroy show output eks-status eks-connect eks-kubeconfig cost-estimate re-apply refresh
