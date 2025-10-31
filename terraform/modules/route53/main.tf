@@ -1,9 +1,9 @@
 terraform {
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.0"
-      configuration_aliases = [ aws.us_east_1 ]
+      source                = "hashicorp/aws"
+      version               = ">= 5.0"
+      configuration_aliases = [aws.us_east_1]
     }
   }
 }
@@ -11,7 +11,7 @@ terraform {
 # Register the domain in Route53 Domains (must use us-east-1)
 resource "aws_route53domains_registered_domain" "this" {
   count       = var.register_domain ? 1 : 0
-  provider   = aws.us_east_1
+  provider    = aws.us_east_1
   domain_name = var.domain_name
   auto_renew  = var.auto_renew
 
@@ -63,9 +63,11 @@ resource "aws_route53domains_registered_domain" "this" {
     fax               = try(var.contact_tech.fax, null)
   }
 
-  admin_privacy       = var.privacy_protect
-  registrant_privacy  = var.privacy_protect
-  tech_privacy        = var.privacy_protect
+  admin_privacy      = var.privacy_protect
+  registrant_privacy = var.privacy_protect
+  tech_privacy       = var.privacy_protect
+
+  # billing_contact is not supported by this resource in Terraform AWS provider
 
   tags = var.tags
 }

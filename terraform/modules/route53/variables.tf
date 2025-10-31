@@ -15,6 +15,8 @@ variable "privacy_protect" {
   default     = true
 }
 
+// No duration_in_years here; Terraform cannot purchase/register new domains via this resource
+
 variable "register_domain" {
   description = "Whether to manage an already-registered domain in this AWS account"
   type        = bool
@@ -24,57 +26,57 @@ variable "register_domain" {
 variable "contact_admin" {
   description = "Admin contact information"
   type = object({
-    first_name      = string
-    last_name       = string
-    contact_type    = string
-    organization    = optional(string)
-    address_line_1  = string
-    address_line_2  = optional(string)
-    city            = string
-    state           = string
-    country_code    = string # e.g. VN, US
-    zip_code        = string
-    phone_number    = string
-    email           = string
-    fax             = optional(string)
+    first_name     = string
+    last_name      = string
+    contact_type   = string
+    organization   = optional(string)
+    address_line_1 = string
+    address_line_2 = optional(string)
+    city           = string
+    state          = string
+    country_code   = string # e.g. VN, US
+    zip_code       = string
+    phone_number   = string
+    email          = string
+    fax            = optional(string)
   })
 }
 
 variable "contact_registrant" {
   description = "Registrant contact information"
   type = object({
-    first_name      = string
-    last_name       = string
-    contact_type    = string
-    organization    = optional(string)
-    address_line_1  = string
-    address_line_2  = optional(string)
-    city            = string
-    state           = string
-    country_code    = string
-    zip_code        = string
-    phone_number    = string
-    email           = string
-    fax             = optional(string)
+    first_name     = string
+    last_name      = string
+    contact_type   = string
+    organization   = optional(string)
+    address_line_1 = string
+    address_line_2 = optional(string)
+    city           = string
+    state          = string
+    country_code   = string
+    zip_code       = string
+    phone_number   = string
+    email          = string
+    fax            = optional(string)
   })
 }
 
 variable "contact_tech" {
   description = "Technical contact information"
   type = object({
-    first_name      = string
-    last_name       = string
-    contact_type    = string
-    organization    = optional(string)
-    address_line_1  = string
-    address_line_2  = optional(string)
-    city            = string
-    state           = string
-    country_code    = string
-    zip_code        = string
-    phone_number    = string
-    email           = string
-    fax             = optional(string)
+    first_name     = string
+    last_name      = string
+    contact_type   = string
+    organization   = optional(string)
+    address_line_1 = string
+    address_line_2 = optional(string)
+    city           = string
+    state          = string
+    country_code   = string
+    zip_code       = string
+    phone_number   = string
+    email          = string
+    fax            = optional(string)
   })
 }
 

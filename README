@@ -1,0 +1,32 @@
+## Repository Structure Decision
+
+I was considering whether to put the manifest configuration into this repository.  
+However, after evaluating the workflow, I realized that **manifest management** and **CI/CD pipelines** should be separated from each other.  
+Therefore, I decided to keep the **Kubernetes manifests** in a dedicated repository managed by **Argo CD**.
+
+[Link to the manifest repository](<>)
+
+## Enable OIDC for EKS
+export REGION=ap-southeast-1
+export CLUSTER_NAME=dev-eks-cluster
+export AWS_REGION=$REGION
+export AWS_DEFAULT_REGION=$REGION
+
+eksctl utils associate-iam-oidc-provider \
+  --cluster $CLUSTER_NAME \
+  --region  $REGION \
+  --approve
+
+## IAM policy cho controller
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.8.2/docs/install/iam_policy.json
+aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy \
+  --policy-document file://iam_policy.json || true
+
+## Create IRSA (service account + role)
+eksctl create iamserviceaccount \
+  --cluster $CLUSTER_NAME \
+  --namespace kube-system \
+  --name aws-load-balancer-controller \
+  --attach-policy-arn arn:aws:iam::$ACCOUNT_ID:policy/AWSLoadBalancerControllerIAMPolicy \
+  --approve

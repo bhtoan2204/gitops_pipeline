@@ -146,8 +146,8 @@ module "route53" {
   register_domain = false
 
   contact_admin      = local.contact_admin
-  contact_registrant = var.domain_contact
-  contact_tech       = var.domain_contact
+  contact_registrant = local.contact_admin
+  contact_tech       = local.contact_admin
 
   tags = local.common_tags
 

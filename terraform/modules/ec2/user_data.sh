@@ -92,3 +92,5 @@ echo "EKS Control Plane setup completed at $(date)" | sudo tee -a /var/log/eks-s
 
 # Start the service
 sudo systemctl start eks-kubeconfig.service
+
+/usr/local/bin/update-kubeconfig.sh
